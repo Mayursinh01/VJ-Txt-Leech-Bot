@@ -5,12 +5,13 @@ idna
 mutagen
 pyaes
 pycryptodome
-pyrogram==1.4.16
-TgCrypto==1.2.5
-pyromod==1.5
+pyrogram==2.0.106
+TgCrypto
+pyromod
 pymongo==4.6.1
 PySocks
 python-dotenv
+ntplib
 requests>=2.31.0
 soupsieve
 urllib3>=2.0.0
@@ -27,3 +28,4 @@ gunicorn
 Jinja2
 werkzeug
 itsdangerous>=2.1.2
+marshmallow<4.0.0
