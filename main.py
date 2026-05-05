@@ -1,5 +1,7 @@
 # Don't Remove Credit Tg - @VJ_Bots
 
+import time
+time.sleep(10)
 import os
 import re
 import sys
