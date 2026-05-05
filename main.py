@@ -1,11 +1,9 @@
 # Don't Remove Credit Tg - @VJ_Bots
-
-import time
-time.sleep(10)
-
+import subprocess
+import sys
 import os
 import re
-import sys
+import time  # ✅ ADDED - was missing
 import asyncio
 import requests
 from subprocess import getstatusoutput
@@ -20,16 +18,27 @@ from pyrogram import Client, filters
 from pyrogram.types import Message
 from pyrogram.errors import FloodWait
 
+
+# ✅ Time sync before bot starts
+def sync_time():
+    try:
+        subprocess.run(["ntpdate", "-u", "pool.ntp.org"], check=True)
+    except Exception:
+        pass
+
+sync_time()
+time.sleep(3)  # ✅ wait after sync
+
+
 # ✅ folder fix
 os.makedirs("downloads", exist_ok=True)
 
-# ✅ stability fix (important)
 bot = Client(
     "bot",
     api_id=API_ID,
     api_hash=API_HASH,
     bot_token=BOT_TOKEN,
-    sleep_threshold=30   # 🔥 important
+    sleep_threshold=30
 )
 
 
@@ -97,7 +106,7 @@ async def upload(bot: Client, m: Message):
         getstatusoutput(f"wget '{thumb}' -O 'thumb.jpg'")
         thumb = "thumb.jpg"
     else:
-        thumb = None   # ✅ better handling
+        thumb = None
 
     for i in range(count - 1, len(links)):
         try:
@@ -105,8 +114,7 @@ async def upload(bot: Client, m: Message):
             url = "https://" + links[i][1]
 
             name = f"{str(i+1).zfill(3)}_{name1[:50]}"
-
-            cmd = f'yt-dlp -f "best" "{url}" -o "{name}.mp4"'
+            cmd = f'yt-dlp -f "best[height<={raw_text2}]" "{url}" -o "{name}.mp4"'  # ✅ quality fix
 
             msg = await m.reply_text(f"Downloading: {name}")
 
@@ -117,23 +125,21 @@ async def upload(bot: Client, m: Message):
             await bot.send_video(
                 chat_id=m.chat.id,
                 video=res_file,
-                caption=f"{name}\nBatch: {raw_text0}",
+                caption=f"{raw_text3}\n\n{name}\nBatch: {raw_text0}",  # ✅ caption fix
                 thumb=thumb
             )
 
             os.remove(res_file)
-            await asyncio.sleep(1)   # ✅ async fix
+            await asyncio.sleep(2)
 
         except FloodWait as e:
             await asyncio.sleep(e.x)
 
         except Exception as e:
-            await m.reply_text(f"Error: {str(e)}")
+            await m.reply_text(f"Error at {i+1}: {str(e)}")
+            continue  # ✅ don't stop entire batch on one error
 
     await m.reply_text("Done ✅")
 
-
-# ✅ final stability
-time.sleep(5)
 
 bot.run()
