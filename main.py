@@ -6,7 +6,6 @@ time.sleep(10)
 import os
 import re
 import sys
-import time
 import asyncio
 import requests
 from subprocess import getstatusoutput
@@ -21,14 +20,16 @@ from pyrogram import Client, filters
 from pyrogram.types import Message
 from pyrogram.errors import FloodWait
 
-# ✅ important fix
+# ✅ folder fix
 os.makedirs("downloads", exist_ok=True)
 
+# ✅ stability fix (important)
 bot = Client(
     "bot",
     api_id=API_ID,
     api_hash=API_HASH,
-    bot_token=BOT_TOKEN
+    bot_token=BOT_TOKEN,
+    sleep_threshold=30   # 🔥 important
 )
 
 
@@ -96,7 +97,7 @@ async def upload(bot: Client, m: Message):
         getstatusoutput(f"wget '{thumb}' -O 'thumb.jpg'")
         thumb = "thumb.jpg"
     else:
-        thumb = "no"
+        thumb = None   # ✅ better handling
 
     for i in range(count - 1, len(links)):
         try:
@@ -117,21 +118,22 @@ async def upload(bot: Client, m: Message):
                 chat_id=m.chat.id,
                 video=res_file,
                 caption=f"{name}\nBatch: {raw_text0}",
-                thumb=thumb if thumb != "no" else None
+                thumb=thumb
             )
 
             os.remove(res_file)
-            time.sleep(1)
+            await asyncio.sleep(1)   # ✅ async fix
 
         except FloodWait as e:
             await asyncio.sleep(e.x)
+
         except Exception as e:
             await m.reply_text(f"Error: {str(e)}")
 
     await m.reply_text("Done ✅")
 
 
-# ✅ stability fix for Render
+# ✅ final stability
 time.sleep(5)
 
 bot.run()
