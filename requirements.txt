@@ -5,13 +5,13 @@ idna
 mutagen
 pyaes
 pycryptodome
-pyrogram==2.0.106
+pyrogram==1.4.16
+TgCrypto==1.2.5
 pymongo==4.6.1
 PySocks
 python-dotenv
 requests>=2.31.0
 soupsieve
-TgCrypto
 urllib3>=2.0.0
 websockets
 yt-dlp
