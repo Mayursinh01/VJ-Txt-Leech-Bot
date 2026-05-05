@@ -26,3 +26,4 @@ gunicorn
 Jinja2
 werkzeug
 itsdangerous>=2.1.2
+pyromod==1.5
