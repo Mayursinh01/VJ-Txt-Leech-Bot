@@ -3,7 +3,7 @@ import subprocess
 import sys
 import os
 import re
-import time  # ✅ ADDED - was missing
+import time
 import asyncio
 import requests
 from subprocess import getstatusoutput
@@ -27,8 +27,7 @@ def sync_time():
         pass
 
 sync_time()
-time.sleep(3)  # ✅ wait after sync
-
+time.sleep(3)
 
 # ✅ folder fix
 os.makedirs("downloads", exist_ok=True)
@@ -114,32 +113,61 @@ async def upload(bot: Client, m: Message):
             url = "https://" + links[i][1]
 
             name = f"{str(i+1).zfill(3)}_{name1[:50]}"
-            cmd = f'yt-dlp -f "best[height<={raw_text2}]" "{url}" -o "{name}.mp4"'  # ✅ quality fix
 
-            msg = await m.reply_text(f"Downloading: {name}")
+            # ✅ FIXED CMD for Akamai/Appx m3u8 streams
+            cmd = (
+                f'yt-dlp '
+                f'--allow-unplayable-formats '
+                f'--no-check-certificate '
+                f'--no-part '
+                f'-f "best[height<={raw_text2}]/best/bestvideo+bestaudio" '
+                f'--add-header "Referer:https://appxsignurlbyvip.vercel.app/" '
+                f'--add-header "Origin:https://appxsignurlbyvip.vercel.app" '
+                f'--add-header "User-Agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" '
+                f'--hls-prefer-ffmpeg '
+                f'--hls-use-mpegts '
+                f'-o "downloads/{name}.mp4" '
+                f'"{url}"'
+            )
+
+            msg = await m.reply_text(
+                f"⬇️ Downloading {i+1}/{len(links)}\n`{name}`"
+            )
 
             res_file = await helper.download_video(url, cmd, name)
 
-            await msg.delete()
+            if not res_file or not os.path.exists(res_file):
+                await msg.edit(f"❌ Failed to download: `{name}`\nURL may have expired.")
+                continue
+
+            # ✅ Check file is not empty/corrupted
+            if os.path.getsize(res_file) < 100 * 1024:  # less than 100KB
+                await msg.edit(f"❌ File too small (corrupted/expired): `{name}`")
+                os.remove(res_file)
+                continue
+
+            await msg.edit(f"⬆️ Uploading {i+1}/{len(links)}\n`{name}`")
 
             await bot.send_video(
                 chat_id=m.chat.id,
                 video=res_file,
-                caption=f"{raw_text3}\n\n{name}\nBatch: {raw_text0}",  # ✅ caption fix
-                thumb=thumb
+                caption=f"{raw_text3}\n\n`{name}`\n**Batch:** {raw_text0}",
+                thumb=thumb,
+                supports_streaming=True
             )
 
             os.remove(res_file)
+            await msg.delete()
             await asyncio.sleep(2)
 
         except FloodWait as e:
             await asyncio.sleep(e.x)
 
         except Exception as e:
-            await m.reply_text(f"Error at {i+1}: {str(e)}")
-            continue  # ✅ don't stop entire batch on one error
+            await m.reply_text(f"❌ Error at {i+1}: `{str(e)}`")
+            continue
 
-    await m.reply_text("Done ✅")
+    await m.reply_text("✅ Done! All videos uploaded.")
 
 
 bot.run()
