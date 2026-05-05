@@ -1,10 +1,8 @@
-# Don't Remove Credit @VJ_Bots
 FROM python:3.10-slim
 
 RUN apt-get update -y && apt-get upgrade -y \
-    && apt-get install -y --no-install-recommends gcc libffi-dev musl-dev ffmpeg aria2 python3-pip tzdata \
-    && ln -fs /usr/share/zoneinfo/Asia/Kolkata /etc/localtime \
-    && dpkg-reconfigure -f noninteractive tzdata \
+    && apt-get install -y --no-install-recommends gcc libffi-dev musl-dev ffmpeg aria2 python3-pip ntpdate \
+    && ntpdate pool.ntp.org \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
